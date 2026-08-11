@@ -19,26 +19,6 @@ const customers = [
     description: "V. Regenerative Gardening helps homeowners across the Sunshine Coast create healthier, lower-maintenance outdoor spaces through native planting, organic care, and regenerative design.",
   },
   {
-    id: "CUS-002",
-    name: "Northwind Studio",
-    tier: "Managed",
-    status: "Active",
-    environments: 2,
-    services: 5,
-    deployments: 12,
-    lastActivity: "Today",
-  },
-  {
-    id: "CUS-003",
-    name: "Apex Commerce",
-    tier: "Managed",
-    status: "Active",
-    environments: 1,
-    services: 3,
-    deployments: 7,
-    lastActivity: "Yesterday",
-  },
-  {
     id: "CUS-004",
     name: "Demo Customer",
     tier: "Evaluation",
@@ -109,7 +89,7 @@ function App() {
         <article className="hero-card infrastructure-hero" onClick={() => setSection("infrastructure")}><div className="hero-icon">▤</div><div><span className="eyebrow">Infrastructure</span><h3>Operate Atlaris systems</h3><p>Servers, services, deployments, monitoring, releases, tunnels, agents, and automation.</p></div><span className="hero-arrow">→</span></article>
         <article className="hero-card customers-hero" onClick={() => setSection("customers")}><div className="hero-icon">◎</div><div><span className="eyebrow">Customers</span><h3>Manage customer operations</h3><p>Accounts, assigned infrastructure, services, environments, deployments, and activity.</p></div><span className="hero-arrow">→</span></article>
       </section>
-      <section className="stats-grid"><StatCard label="Infrastructure health" value="Healthy" detail="atlas01 online · agent + tunnel ready" accent="CORE" /><StatCard label="Managed customers" value={customers.length} detail="6 active · 1 onboarding" accent="CRM" /><StatCard label="Production releases" value="5" detail="Current release protected by rollback" accent="CD" /><StatCard label="MCP capabilities" value="21" detail="Controlled administration tools" accent="MCP" /></section>
+      <section className="stats-grid"><StatCard label="Infrastructure health" value="Healthy" detail="atlas01 online · agent + tunnel ready" accent="CORE" /><StatCard label="Managed customers" value={customers.length} detail="4 active · 1 onboarding" accent="CRM" /><StatCard label="Production releases" value="5" detail="Current release protected by rollback" accent="CD" /><StatCard label="MCP capabilities" value="21" detail="Controlled administration tools" accent="MCP" /></section>
       <section className="overview-grid">
         <article className="panel"><SectionTitle eyebrow="Infrastructure" title="Atlaris estate" description="Core systems currently managed by the administration platform." /><div className="estate-list">{infrastructure.map((server) => <div className="estate-row" key={server.name}><div className="server-avatar">{server.name === "atlas01" ? "01" : "+"}</div><div className="estate-copy"><strong>{server.name}</strong><span>{server.role}</span></div><div className="estate-meta"><span>{server.environment}</span><strong className={server.status === "Healthy" ? "good" : "muted"}>{server.status}</strong></div></div>)}</div></article>
         <article className="panel"><SectionTitle eyebrow="Customers" title="Customer pulse" description="Operational status across managed customer accounts." /><div className="customer-pulse">{customers.map((customer) => <button key={customer.id} className="pulse-row" onClick={() => { setSelectedCustomer(customer); setSection("customers"); }}><div className="customer-monogram">{customer.name.slice(0, 2).toUpperCase()}</div><div><strong>{customer.name}</strong><span>{customer.tier}</span></div><span className={`customer-status ${customer.status.toLowerCase()}`}>{customer.status}</span></button>)}</div></article>
