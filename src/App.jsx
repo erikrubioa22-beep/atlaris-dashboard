@@ -48,6 +48,36 @@ const customers = [
     deployments: 1,
     lastActivity: "2 days ago",
   },
+  {
+    id: "CUS-005",
+    name: "Sunshine Solution",
+    tier: "Managed",
+    status: "Active",
+    environments: 1,
+    services: 0,
+    deployments: 0,
+    lastActivity: "New customer",
+  },
+  {
+    id: "CUS-006",
+    name: "AIport",
+    tier: "Managed",
+    status: "Active",
+    environments: 1,
+    services: 0,
+    deployments: 0,
+    lastActivity: "New customer",
+  },
+  {
+    id: "CUS-007",
+    name: "Vancouver RealEstateIQ",
+    tier: "Managed",
+    status: "Active",
+    environments: 1,
+    services: 0,
+    deployments: 0,
+    lastActivity: "New customer",
+  },
 ];
 
 const recentActivity = [
@@ -79,7 +109,7 @@ function App() {
         <article className="hero-card infrastructure-hero" onClick={() => setSection("infrastructure")}><div className="hero-icon">▤</div><div><span className="eyebrow">Infrastructure</span><h3>Operate Atlaris systems</h3><p>Servers, services, deployments, monitoring, releases, tunnels, agents, and automation.</p></div><span className="hero-arrow">→</span></article>
         <article className="hero-card customers-hero" onClick={() => setSection("customers")}><div className="hero-icon">◎</div><div><span className="eyebrow">Customers</span><h3>Manage customer operations</h3><p>Accounts, assigned infrastructure, services, environments, deployments, and activity.</p></div><span className="hero-arrow">→</span></article>
       </section>
-      <section className="stats-grid"><StatCard label="Infrastructure health" value="Healthy" detail="atlas01 online · agent + tunnel ready" accent="CORE" /><StatCard label="Managed customers" value={customers.length} detail="3 active · 1 onboarding" accent="CRM" /><StatCard label="Production releases" value="5" detail="Current release protected by rollback" accent="CD" /><StatCard label="MCP capabilities" value="21" detail="Controlled administration tools" accent="MCP" /></section>
+      <section className="stats-grid"><StatCard label="Infrastructure health" value="Healthy" detail="atlas01 online · agent + tunnel ready" accent="CORE" /><StatCard label="Managed customers" value={customers.length} detail="6 active · 1 onboarding" accent="CRM" /><StatCard label="Production releases" value="5" detail="Current release protected by rollback" accent="CD" /><StatCard label="MCP capabilities" value="21" detail="Controlled administration tools" accent="MCP" /></section>
       <section className="overview-grid">
         <article className="panel"><SectionTitle eyebrow="Infrastructure" title="Atlaris estate" description="Core systems currently managed by the administration platform." /><div className="estate-list">{infrastructure.map((server) => <div className="estate-row" key={server.name}><div className="server-avatar">{server.name === "atlas01" ? "01" : "+"}</div><div className="estate-copy"><strong>{server.name}</strong><span>{server.role}</span></div><div className="estate-meta"><span>{server.environment}</span><strong className={server.status === "Healthy" ? "good" : "muted"}>{server.status}</strong></div></div>)}</div></article>
         <article className="panel"><SectionTitle eyebrow="Customers" title="Customer pulse" description="Operational status across managed customer accounts." /><div className="customer-pulse">{customers.map((customer) => <button key={customer.id} className="pulse-row" onClick={() => { setSelectedCustomer(customer); setSection("customers"); }}><div className="customer-monogram">{customer.name.slice(0, 2).toUpperCase()}</div><div><strong>{customer.name}</strong><span>{customer.tier}</span></div><span className={`customer-status ${customer.status.toLowerCase()}`}>{customer.status}</span></button>)}</div></article>
@@ -104,7 +134,7 @@ function App() {
         <article className="panel customer-detail"><div className="customer-detail-head"><div className="customer-identity"><div className="customer-monogram large">{selectedCustomer.name.slice(0, 2).toUpperCase()}</div><div><span className="eyebrow">{selectedCustomer.id}</span><h3>{selectedCustomer.name}</h3><p>{selectedCustomer.tier} customer</p></div></div><span className={`customer-status ${selectedCustomer.status.toLowerCase()}`}>{selectedCustomer.status}</span></div>
           <div className="customer-metrics"><div><strong>{selectedCustomer.environments}</strong><span>Environments</span></div><div><strong>{selectedCustomer.services}</strong><span>Services</span></div><div><strong>{selectedCustomer.deployments}</strong><span>Deployments</span></div><div><strong>{selectedCustomer.lastActivity}</strong><span>Last activity</span></div></div>
           <div className="customer-tabs"><span className="active">Overview</span><span>Infrastructure</span><span>Services</span><span>Deployments</span><span>Domains</span><span>Activity</span><span>Notes</span></div>
-          <div className="customer-detail-grid"><div className="subpanel"><span className="eyebrow">Customer profile</span><h4>{selectedCustomer.name}</h4><p>{description}</p><div className="placeholder-map"><StatusDot />Sunshine Coast customer operations profile</div></div><div className="subpanel"><span className="eyebrow">Operations</span><h4>Service portfolio</h4><p>Track hosting, applications, domains, backups, monitoring, and managed services from the customer record.</p><div className="mini-service-tags"><span>Hosting</span><span>Monitoring</span><span>Deployments</span></div></div></div>
+          <div className="customer-detail-grid"><div className="subpanel"><span className="eyebrow">Customer profile</span><h4>{selectedCustomer.name}</h4><p>{description}</p><div className="placeholder-map"><StatusDot />Customer operations profile</div></div><div className="subpanel"><span className="eyebrow">Operations</span><h4>Service portfolio</h4><p>Track hosting, applications, domains, backups, monitoring, and managed services from the customer record.</p><div className="mini-service-tags"><span>Hosting</span><span>Monitoring</span><span>Deployments</span></div></div></div>
         </article>
       </section>
     </>;
