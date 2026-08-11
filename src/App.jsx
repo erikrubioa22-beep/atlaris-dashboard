@@ -20,7 +20,6 @@ const atlasSnapshot = {
 
 const emailAccounts = [
   "notifications@atlaris.ca",
-  "erik.rubio@atlaris.ca",
   "contact@atlaris.ca",
   "support@atlaris.ca",
 ];
