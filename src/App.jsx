@@ -6,6 +6,18 @@ const infrastructure = [
   { name: "Future node", role: "Reserved capacity", environment: "Planned", status: "Planned", address: "—", services: 0 },
 ];
 
+const atlasSnapshot = {
+  hostname: "atlas01",
+  ip: "192.168.1.149",
+  cpu: "0.0%",
+  memory: "2.7% used",
+  memoryDetail: "30.4 GiB available / 31.3 GiB total",
+  fs: "13% used",
+  fsDetail: "82 GiB available / 98 GiB root filesystem",
+  uptime: "22h 44m",
+  load: "0.01 / 0.00 / 0.00",
+};
+
 const customers = [
   { id: "CUS-001", name: "V. Regenerative Gardening", tier: "Managed", status: "Active", environments: 1, services: 1, deployments: 0, lastActivity: "New customer", description: "V. Regenerative Gardening helps homeowners across the Sunshine Coast create healthier, lower-maintenance outdoor spaces through native planting, organic care, and regenerative design." },
   { id: "CUS-004", name: "Demo Customer", tier: "Evaluation", status: "Onboarding", environments: 1, services: 2, deployments: 1, lastActivity: "2 days ago" },
@@ -48,7 +60,7 @@ function App() {
       const elapsed = Math.max(1, Math.round(performance.now() - started));
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setHealthState("healthy");
-      setHealthMessage(`atlas01 is reachable · HTTP ${response.status} · ${elapsed} ms`);
+      setHealthMessage(`atlas01 is reachable · HTTP ${response.status} · ${elapsed} ms · system snapshot below`);
     } catch (error) {
       setHealthState("error");
       setHealthMessage(`Health check failed · ${error.message || "server unreachable"}`);
@@ -68,7 +80,7 @@ function App() {
     return <><SectionTitle eyebrow="Atlaris infrastructure" title="Infrastructure administration" description="Internal systems owned and operated by Atlaris Technologies. Customer-assigned assets will reference these records rather than duplicate them." action={<button className="primary-button">Add server</button>} />
       <section className="stats-grid infrastructure-stats"><StatCard label="Servers" value="1" detail="1 production · 0 degraded" accent="HOST" /><StatCard label="Services" value="4" detail="Nginx · Agent · Tunnel · Git" accent="SVC" /><StatCard label="CPU" value="0.0%" detail="atlas01 snapshot" accent="CPU" /><StatCard label="Disk" value="12.6%" detail="81.1 GiB free" accent="SSD" /></section>
       <section className="panel"><div className="table-header"><div><span className="eyebrow">Servers</span><h3>Managed infrastructure</h3></div><span className="table-note">Production inventory</span></div><div className="data-table"><div className="data-row data-head"><span>Server</span><span>Environment</span><span>Address</span><span>Services</span><span>Status</span></div>{infrastructure.map((server) => <div className="data-row" key={server.name}><span><strong>{server.name}</strong><small>{server.role}</small></span><span>{server.environment}</span><span className="mono">{server.address}</span><span>{server.services}</span><span><b className={server.status === "Healthy" ? "status-badge healthy" : "status-badge planned"}>{server.status}</b></span></div>)}</div></section>
-      <section className="two-column-grid"><article className="panel"><SectionTitle eyebrow="atlas01" title="Runtime services" /><div className="service-list">{["Nginx 1.24", "Atlaris Server Agent", "OpenAI Tunnel", "Dashboard Git Repository"].map((service) => <div className="service-line" key={service}><span><StatusDot />{service}</span><strong>Healthy</strong></div>)}</div><div className="quick-health"><div className="quick-health-copy"><strong>Quick Health Check</strong><span>Verify atlas01 is responding from this dashboard.</span></div><button className="primary-button health-check-button" disabled={healthState === "checking"} onClick={runQuickHealthCheck}>{healthState === "checking" ? "Checking…" : "Run Check"}</button></div><div className={`quick-health-result ${healthState === "healthy" ? "healthy" : healthState === "error" ? "error" : ""}`}>{healthMessage}</div></article><article className="panel"><SectionTitle eyebrow="Deployment" title="Safety controls" /><div className="safety-list">{["Clean Git working tree", "Fast-forward only update", "Production build validation", "Atomic release switch", "Nginx configuration test", "HTTP post-deploy health check", "Rollback target retained"].map((item) => <div key={item}><span>✓</span>{item}</div>)}</div></article></section>
+      <section className="two-column-grid"><article className="panel"><SectionTitle eyebrow="atlas01" title="Runtime services" /><div className="service-list">{["Nginx 1.24", "Atlaris Server Agent", "OpenAI Tunnel", "Dashboard Git Repository"].map((service) => <div className="service-line" key={service}><span><StatusDot />{service}</span><strong>Healthy</strong></div>)}</div><div className="quick-health"><div className="quick-health-copy"><strong>Quick Health Check</strong><span>Verify reachability and review atlas01 system health.</span></div><button className="primary-button health-check-button" disabled={healthState === "checking"} onClick={runQuickHealthCheck}>{healthState === "checking" ? "Checking…" : "Run Check"}</button></div><div className={`quick-health-result ${healthState === "healthy" ? "healthy" : healthState === "error" ? "error" : ""}`}>{healthMessage}</div><div className="customer-metrics"><div><strong>{atlasSnapshot.ip}</strong><span>IP address</span></div><div><strong>{atlasSnapshot.cpu}</strong><span>CPU utilization</span></div><div><strong>{atlasSnapshot.memory}</strong><span>Memory · {atlasSnapshot.memoryDetail}</span></div><div><strong>{atlasSnapshot.fs}</strong><span>Root FS · {atlasSnapshot.fsDetail}</span></div><div><strong>{atlasSnapshot.uptime}</strong><span>Uptime</span></div><div><strong>{atlasSnapshot.load}</strong><span>Load average · 1 / 5 / 15 min</span></div></div></article><article className="panel"><SectionTitle eyebrow="Deployment" title="Safety controls" /><div className="safety-list">{["Clean Git working tree", "Fast-forward only update", "Production build validation", "Atomic release switch", "Nginx configuration test", "HTTP post-deploy health check", "Rollback target retained"].map((item) => <div key={item}><span>✓</span>{item}</div>)}</div></article></section>
     </>;
   }
 
