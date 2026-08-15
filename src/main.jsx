@@ -5,6 +5,7 @@ import App from './App.jsx'
 import FinanceBridge from './FinanceBridge.jsx'
 import FinanceOperations from './FinanceOperations.jsx'
 import AdminModules from './AdminModules.jsx'
+import ReadinessModule from './ReadinessModule.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -12,5 +13,6 @@ createRoot(document.getElementById('root')).render(
     <FinanceBridge />
     <FinanceOperations />
     <AdminModules />
+    <ReadinessModule />
   </StrictMode>,
 )
