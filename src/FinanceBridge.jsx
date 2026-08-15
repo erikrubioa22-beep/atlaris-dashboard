@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect } from 'react'
 
 export default function FinanceBridge() {
-  const [host, setHost] = useState(null)
-
   useEffect(() => {
     let cancelled = false
     let timer
+    let financeButton = null
 
     const sync = () => {
       if (cancelled) return
@@ -16,40 +14,30 @@ export default function FinanceBridge() {
         (group) =>
           group.querySelector('.sidebar-section-label')?.textContent.trim() === 'Administration',
       )
-      const target = admin?.querySelector('.nav-list')
-      if (target) setHost(target)
+      const host = admin?.querySelector('.nav-list')
 
-      const legacy = document.querySelector('.finance-nav')
-      if (legacy) {
-        legacy.style.display = 'none'
-        legacy.setAttribute('aria-hidden', 'true')
-        legacy.tabIndex = -1
+      if (!financeButton || !financeButton.isConnected) {
+        const existing = document.querySelector('.finance-nav')
+        if (existing) financeButton = existing
+      }
+
+      if (host && financeButton) {
+        financeButton.style.display = ''
+        financeButton.removeAttribute('aria-hidden')
+        financeButton.tabIndex = 0
+        if (financeButton.parentElement !== host) host.appendChild(financeButton)
       }
 
       timer = window.setTimeout(sync, 250)
     }
 
     sync()
+
     return () => {
       cancelled = true
       window.clearTimeout(timer)
     }
   }, [])
 
-  if (!host) return null
-
-  return createPortal(
-    <button
-      type="button"
-      className="nav-link finance-native-nav"
-      onClick={() => {
-        const legacy = document.querySelector('.finance-nav')
-        if (legacy) legacy.click()
-      }}
-    >
-      <span>▦</span>
-      Finance & Administration
-    </button>,
-    host,
-  )
+  return null
 }
