@@ -3,36 +3,31 @@ import { useEffect } from "react";
 export default function FinanceBridge() {
   useEffect(() => {
     let timer;
+    let attempts = 0;
 
-    const install = () => {
-      if (document.querySelector(".finance-nav")) return true;
+    const placeFinanceNav = () => {
+      attempts += 1;
 
       const groups = [...document.querySelectorAll(".nav-group")];
       const admin = groups.find(
-        (group) => group.querySelector(".sidebar-section-label")?.textContent.trim() === "Administration",
+        (group) =>
+          group.querySelector(".sidebar-section-label")?.textContent.trim() ===
+          "Administration",
       );
       const host = admin?.querySelector(".nav-list");
-      if (!host) return false;
+      const financeButton = document.querySelector(".finance-nav");
 
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "nav-link finance-nav";
-      button.innerHTML = "<span>▦</span>Finance & Administration";
-      button.addEventListener("click", () => {
-        if (window.AtlarisFinance?.open) {
-          window.AtlarisFinance.open();
-        } else {
-          window.dispatchEvent(new CustomEvent("atlaris-open-finance"));
-        }
-      });
-      host.appendChild(button);
-      return true;
+      if (host && financeButton) {
+        if (financeButton.parentElement !== host) host.appendChild(financeButton);
+        window.clearInterval(timer);
+        return;
+      }
+
+      if (attempts >= 40) window.clearInterval(timer);
     };
 
-    install();
-    timer = window.setInterval(() => {
-      if (install()) window.clearInterval(timer);
-    }, 250);
+    placeFinanceNav();
+    timer = window.setInterval(placeFinanceNav, 100);
 
     return () => window.clearInterval(timer);
   }, []);
