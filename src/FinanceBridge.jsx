@@ -1,36 +1,55 @@
-import { useEffect } from "react";
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function FinanceBridge() {
+  const [host, setHost] = useState(null)
+
   useEffect(() => {
-    let timer;
-    let attempts = 0;
+    let cancelled = false
+    let timer
 
-    const placeFinanceNav = () => {
-      attempts += 1;
+    const sync = () => {
+      if (cancelled) return
 
-      const groups = [...document.querySelectorAll(".nav-group")];
+      const groups = [...document.querySelectorAll('.nav-group')]
       const admin = groups.find(
         (group) =>
-          group.querySelector(".sidebar-section-label")?.textContent.trim() ===
-          "Administration",
-      );
-      const host = admin?.querySelector(".nav-list");
-      const financeButton = document.querySelector(".finance-nav");
+          group.querySelector('.sidebar-section-label')?.textContent.trim() === 'Administration',
+      )
+      const target = admin?.querySelector('.nav-list')
+      if (target) setHost(target)
 
-      if (host && financeButton) {
-        if (financeButton.parentElement !== host) host.appendChild(financeButton);
-        window.clearInterval(timer);
-        return;
+      const legacy = document.querySelector('.finance-nav')
+      if (legacy) {
+        legacy.style.display = 'none'
+        legacy.setAttribute('aria-hidden', 'true')
+        legacy.tabIndex = -1
       }
 
-      if (attempts >= 40) window.clearInterval(timer);
-    };
+      timer = window.setTimeout(sync, 250)
+    }
 
-    placeFinanceNav();
-    timer = window.setInterval(placeFinanceNav, 100);
+    sync()
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [])
 
-    return () => window.clearInterval(timer);
-  }, []);
+  if (!host) return null
 
-  return null;
+  return createPortal(
+    <button
+      type="button"
+      className="nav-link finance-native-nav"
+      onClick={() => {
+        const legacy = document.querySelector('.finance-nav')
+        if (legacy) legacy.click()
+      }}
+    >
+      <span>▦</span>
+      Finance & Administration
+    </button>,
+    host,
+  )
 }
