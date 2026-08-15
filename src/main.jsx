@@ -7,6 +7,7 @@ import FinanceOperations from './FinanceOperations.jsx'
 import AdminModules from './AdminModules.jsx'
 import ReadinessModule from './ReadinessModule.jsx'
 import FinanceExportLinks from './FinanceExportLinks.jsx'
+import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,5 +17,6 @@ createRoot(document.getElementById('root')).render(
     <AdminModules />
     <ReadinessModule />
     <FinanceExportLinks />
+    <ClientOnboardingAutomation />
   </StrictMode>,
 )
