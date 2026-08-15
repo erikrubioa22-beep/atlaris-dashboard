@@ -4,11 +4,13 @@ import './index.css'
 import App from './App.jsx'
 import FinanceBridge from './FinanceBridge.jsx'
 import FinanceOperations from './FinanceOperations.jsx'
+import AdminModules from './AdminModules.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
     <FinanceBridge />
     <FinanceOperations />
+    <AdminModules />
   </StrictMode>,
 )
