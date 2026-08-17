@@ -8,6 +8,7 @@ import AdminModules from './AdminModules.jsx'
 import ReadinessModule from './ReadinessModule.jsx'
 import FinanceExportLinks from './FinanceExportLinks.jsx'
 import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
+import RRTCustomerModule from './RRTCustomerModule.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,5 +19,6 @@ createRoot(document.getElementById('root')).render(
     <ReadinessModule />
     <FinanceExportLinks />
     <ClientOnboardingAutomation />
+    <RRTCustomerModule />
   </StrictMode>,
 )
