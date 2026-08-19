@@ -4,9 +4,7 @@ import './index.css'
 import './mobile.css'
 import App from './App.jsx'
 import FinanceBridge from './FinanceBridge.jsx'
-import FinanceOperations from './FinanceOperations.jsx'
 import AdminModules from './AdminModules.jsx'
-import FinanceExportLinks from './FinanceExportLinks.jsx'
 import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 import RRTCustomerModule from './RRTCustomerModule.jsx'
 
@@ -14,9 +12,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
     <FinanceBridge />
-    <FinanceOperations />
     <AdminModules />
-    <FinanceExportLinks />
     <ClientOnboardingAutomation />
     <RRTCustomerModule />
   </StrictMode>,
