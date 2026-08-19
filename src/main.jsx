@@ -9,9 +9,7 @@ import ReadinessModule from './ReadinessModule.jsx'
 import FinanceExportLinks from './FinanceExportLinks.jsx'
 import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 import RRTCustomerModule from './RRTCustomerModule.jsx'
-import DynamicCustomerRegistry from './DynamicCustomerRegistry.jsx'
 import SettingsBootstrap from './SettingsBootstrap.jsx'
-import PlatformSettings from './PlatformSettings.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -23,8 +21,6 @@ createRoot(document.getElementById('root')).render(
     <FinanceExportLinks />
     <ClientOnboardingAutomation />
     <RRTCustomerModule />
-    <DynamicCustomerRegistry />
     <SettingsBootstrap />
-    <PlatformSettings />
   </StrictMode>,
 )
