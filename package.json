@@ -7,7 +7,8 @@
     "dev": "vite",
     "lint": "oxlint src",
     "test": "node --test src/dashboardPolicy.test.js",
-    "build": "npm run lint && npm test && vite build",
+    "cleanup:legacy": "node -e \"const fs=require('fs'); for (const p of ['ZERO_TOUCH_RESILIENCE.md','src/DynamicCustomerRegistry.jsx','src/PlatformSettings.jsx','src/SettingsBootstrap.jsx','src/assets/react.svg','src/assets/vite.svg','public/customer-logos/aiport.png']) fs.rmSync(p,{force:true,recursive:false})\"",
+    "build": "npm run cleanup:legacy && npm run lint && npm test && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -6,11 +6,9 @@ import App from './App.jsx'
 import FinanceBridge from './FinanceBridge.jsx'
 import FinanceOperations from './FinanceOperations.jsx'
 import AdminModules from './AdminModules.jsx'
-import ReadinessModule from './ReadinessModule.jsx'
 import FinanceExportLinks from './FinanceExportLinks.jsx'
 import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 import RRTCustomerModule from './RRTCustomerModule.jsx'
-import MonitoringPhase3 from './MonitoringPhase3.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,10 +16,8 @@ createRoot(document.getElementById('root')).render(
     <FinanceBridge />
     <FinanceOperations />
     <AdminModules />
-    <ReadinessModule />
     <FinanceExportLinks />
     <ClientOnboardingAutomation />
     <RRTCustomerModule />
-    <MonitoringPhase3 />
   </StrictMode>,
 )
