@@ -10,6 +10,7 @@ import FinanceExportLinks from './FinanceExportLinks.jsx'
 import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 import RRTCustomerModule from './RRTCustomerModule.jsx'
 import SettingsBootstrap from './SettingsBootstrap.jsx'
+import MonitoringPhase3 from './MonitoringPhase3.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -22,5 +23,6 @@ createRoot(document.getElementById('root')).render(
     <ClientOnboardingAutomation />
     <RRTCustomerModule />
     <SettingsBootstrap />
+    <MonitoringPhase3 />
   </StrictMode>,
 )
