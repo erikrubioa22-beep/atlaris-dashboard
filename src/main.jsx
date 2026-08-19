@@ -11,6 +11,7 @@ import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 import RRTCustomerModule from './RRTCustomerModule.jsx'
 import DynamicCustomerRegistry from './DynamicCustomerRegistry.jsx'
 import SettingsBootstrap from './SettingsBootstrap.jsx'
+import PlatformSettings from './PlatformSettings.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -24,5 +25,6 @@ createRoot(document.getElementById('root')).render(
     <RRTCustomerModule />
     <DynamicCustomerRegistry />
     <SettingsBootstrap />
+    <PlatformSettings />
   </StrictMode>,
 )
