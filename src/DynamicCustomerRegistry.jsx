@@ -34,7 +34,10 @@ export default function DynamicCustomerRegistry(){
       for(const row of registry.customers||[]){
         if(STATIC_SLUGS.has(row.slug))continue
         let meta=null
-        try{meta=await getJson(`/api/customer-registry/${encodeURIComponent(row.slug)}/dashboard.json`)}catch{}
+        try{
+          const file=await getJson(`/api/ops/customer/file-read?customer=${encodeURIComponent(row.slug)}&path=dashboard.json`)
+          meta=JSON.parse(file.content)
+        }catch{}
         const target=targets[row.slug]||null
         const name=meta?.customer?.name||target?.display_name||row.slug.split('-').map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(' ')
         const serviceName=meta?.service?.name||target?.service_name||'Main application'
@@ -63,7 +66,7 @@ export default function DynamicCustomerRegistry(){
       const directory=document.querySelector('.directory-list')
       if(directory){
         const count=directory.closest('.customer-directory')?.querySelector('.directory-header strong')
-        if(count)count.textContent=String(directory.querySelectorAll('.directory-item').length+customers.length)
+        if(count)count.textContent=String(directory.querySelectorAll('.directory-item:not(.dynamic-directory-item)').length+customers.length)
       }
       t=setTimeout(sync,500)
     }
