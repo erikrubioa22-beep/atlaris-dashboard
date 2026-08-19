@@ -10,6 +10,7 @@ import FinanceExportLinks from './FinanceExportLinks.jsx'
 import ClientOnboardingAutomation from './ClientOnboardingAutomation.jsx'
 import RRTCustomerModule from './RRTCustomerModule.jsx'
 import DynamicCustomerRegistry from './DynamicCustomerRegistry.jsx'
+import SettingsBootstrap from './SettingsBootstrap.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -22,5 +23,6 @@ createRoot(document.getElementById('root')).render(
     <ClientOnboardingAutomation />
     <RRTCustomerModule />
     <DynamicCustomerRegistry />
+    <SettingsBootstrap />
   </StrictMode>,
 )
