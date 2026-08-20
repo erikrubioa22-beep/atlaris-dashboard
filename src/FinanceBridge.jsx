@@ -1,4 +1,4 @@
-import {Component,useEffect,useMemo,useState} from 'react'
+import {Component,useCallback,useEffect,useMemo,useState} from 'react'
 import {createPortal} from 'react-dom'
 
 const API='/api/finance'
@@ -41,7 +41,7 @@ function FinanceWorkspace({onClose}){
   const[notice,setNotice]=useState('')
   const tabs=useMemo(()=>[['overview','Overview'],['payables','Payables'],['receivables','Receivables'],['cashflow','Cash Flow'],['alerts','Alerts'],['budgets','Budget'],['close','Monthly Close'],['controls','Controls'],['executive','Executive Report']],[])
 
-  async function load(currentTab){
+  const load=useCallback(async currentTab=>{
     const requested=currentTab||tab
     setState({tab:requested,loading:true,error:'',data:null})
     try{
@@ -59,9 +59,9 @@ function FinanceWorkspace({onClose}){
       else if(requested==='executive')d=await get(`/executive-report?fiscal_year=${new Date().getFullYear()}`)
       setState(s=>s.tab===requested?{tab:requested,loading:false,error:'',data:d}:s)
     }catch(e){setState(s=>s.tab===requested?{tab:requested,loading:false,error:e.message,data:null}:s)}
-  }
+  },[tab])
 
-  useEffect(()=>{load(tab)},[tab])
+  useEffect(()=>{load(tab)},[load,tab])
   function switchTab(id){setNotice('');if(id===tab){cache.clear();load(id);return}setState({tab:id,loading:true,error:'',data:null});setTab(id)}
   async function finish(message){setNotice(message);setModal(null);cache.clear();await load(tab)}
 

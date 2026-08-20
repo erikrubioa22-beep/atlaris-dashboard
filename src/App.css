@@ -16,3 +16,18 @@ html, body, #root { margin: 0; min-height: 100%; } body { min-width: 320px; back
 @media(max-width:1150px){.stats-grid{grid-template-columns:repeat(2,1fr)}.overview-grid,.two-column-grid{grid-template-columns:1fr}.customer-layout{grid-template-columns:260px minmax(0,1fr)}.ops-service-row{grid-template-columns:1fr auto}.ops-service-row .inline-actions{grid-column:1/-1;justify-content:flex-start}}
 @media(max-width:850px){.app-shell{grid-template-columns:1fr}.sidebar{position:static;height:auto}.nav-scroll{overflow:visible}.nav-list{display:grid;grid-template-columns:repeat(2,1fr)}.sidebar-health{display:none}.main-content{padding:24px 18px}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.hero-grid,.customer-layout{grid-template-columns:1fr}.customer-metrics{grid-template-columns:repeat(2,1fr)}.history-site{grid-template-columns:1fr}}
 @media(max-width:560px){.stats-grid,.hero-grid{grid-template-columns:1fr}.hero-card{grid-template-columns:42px 1fr}.hero-arrow{display:none}.section-title{flex-direction:column}.customer-metrics{grid-template-columns:1fr 1fr}.footer-note{flex-direction:column}.ops-service-row{grid-template-columns:1fr}.ops-service-row .inline-actions{grid-column:auto}.backup-row{align-items:flex-start;flex-direction:column}.path-block{grid-template-columns:1fr}.site-monitor-strip{grid-template-columns:repeat(2,1fr)}.top-actions .live-pill{width:100%;justify-content:center}.alert-row{grid-template-columns:1fr}.alert-row>div:last-child{text-align:left}}
+
+.node-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:8px}
+.node-card{padding:18px}
+.node-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid #172232}
+.node-card-head h3{margin:5px 0 0;font-size:18px}
+.node-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}
+.node-metrics div{padding:12px;border:1px solid #192637;border-radius:10px;background:#0b121c;min-width:0}
+.node-metrics span,.node-metrics strong,.node-metrics small{display:block}
+.node-metrics span{color:#59697e;font-size:8px;text-transform:uppercase}
+.node-metrics strong{margin-top:5px;font-size:16px}
+.node-metrics small{margin-top:4px;color:#66778d;font-size:8px}
+.node-error{margin:12px 0 0;color:#ef8f8f;font-size:9px}
+.infrastructure-freshness{margin:0 0 14px;color:#56677d;font-size:8px}
+@media(max-width:850px){.node-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.node-metrics{grid-template-columns:1fr}}

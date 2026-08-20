@@ -35,7 +35,7 @@ function ageLabel(value){if(!value)return'No sample';const ms=Date.now()-new Dat
 function durationLabel(ms){if(!Number.isFinite(ms))return'—';if(ms<60000)return`${Math.max(1,Math.round(ms/1000))}s`;if(ms<3600000)return`${Math.round(ms/60000)}m`;if(ms<86400000)return`${Math.round(ms/3600000)}h`;return`${Math.round(ms/86400000)}d`}
 
 export default function App(){
- const[section,setSection]=useState('overview'),[customers,setCustomers]=useState([]),[selectedCustomer,setSelectedCustomer]=useState(null),[registryMessage,setRegistryMessage]=useState('Loading unified customer registry…'),[targets,setTargets]=useState([]),[events,setEvents]=useState([]),[histories,setHistories]=useState({}),[serviceState,setServiceState]=useState({}),[serviceLogs,setServiceLogs]=useState(''),[selectedLogService,setSelectedLogService]=useState(''),[backups,setBackups]=useState({}),[operation,setOperation]=useState({busy:false,message:'Operations API ready.',tone:'neutral'}),[monitorUpdated,setMonitorUpdated]=useState(null),[financeHealth,setFinanceHealth]=useState(null),[financeBackup,setFinanceBackup]=useState(null)
+ const[section,setSection]=useState('overview'),[customers,setCustomers]=useState([]),[selectedCustomer,setSelectedCustomer]=useState(null),[registryMessage,setRegistryMessage]=useState('Loading unified customer registry…'),[targets,setTargets]=useState([]),[events,setEvents]=useState([]),[histories,setHistories]=useState({}),[serviceState,setServiceState]=useState({}),[serviceLogs,setServiceLogs]=useState(''),[selectedLogService,setSelectedLogService]=useState(''),[backups,setBackups]=useState({}),[operation,setOperation]=useState({busy:false,message:'Operations API ready.',tone:'neutral'}),[monitorUpdated,setMonitorUpdated]=useState(null),[financeHealth,setFinanceHealth]=useState(null),[financeBackup,setFinanceBackup]=useState(null),[nodes,setNodes]=useState({atlas01:null,atlas02:null}),[nodesUpdated,setNodesUpdated]=useState(null)
  const sectionLabel=useMemo(()=>navGroups.flatMap(x=>x.items).find(x=>x.id===section)?.label||'Overview',[section])
  const allSites=useMemo(()=>customers.flatMap(c=>c.sites.map(s=>({...s,customerId:c.id,customerName:c.name}))),[customers])
  const targetBySlug=useMemo(()=>Object.fromEntries(targets.map(t=>[t.slug,t])),[targets])
@@ -51,6 +51,7 @@ export default function App(){
  async function loadRegistry(){try{const[registry,current]=await Promise.all([api('/api/ops/customers'),api('/api/monitor/current')]);const targetMap=Object.fromEntries((current.targets||[]).map(t=>[t.slug,t]));const rows=(registry.customers||[]).filter(r=>r.slug&&!SPECIAL_CUSTOMER_SLUGS.has(r.slug));const metaResults=await Promise.all(rows.map(async row=>{try{const f=await api(`/api/ops/customer/file-read?customer=${encodeURIComponent(row.slug)}&path=dashboard.json`);return JSON.parse(f.content)}catch{return null}}));const groups=new Map();rows.forEach((row,index)=>{const meta=metaResults[index],target=targetMap[row.slug];const name=meta?.customer?.name||target?.display_name||row.slug.split('-').map(pretty).join(' ');const key=meta?.customer?.registry_id||name.toLowerCase();const serviceName=meta?.service?.name||target?.service_name||'Main application';const domain=meta?.service?.domain||target?.domain||null;const url=meta?.service?.url||target?.url||(domain?`https://${domain}`:null);if(!groups.has(key))groups.set(key,{id:`REG-${key.replace(/[^a-z0-9]+/g,'-')}`,name,tier:meta?.customer?.tier||'Managed',status:meta?.customer?.status||'Active',description:meta?.customer?.description||meta?.customer?.industry?`${meta?.customer?.industry||'Managed'} customer environment.`:'Managed customer discovered from the Atlaris registry.',brandIcon:name.split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase(),sites:[]});groups.get(key).sites.push({slug:row.slug,name:serviceName,url,localPath:meta?.paths?.source||row.path||`/opt/atlaris-customers/websites/${row.slug}/`,backupPath:meta?.paths?.backups||`/opt/atlaris-customers/backups/${row.slug}/`,meta})});const list=[...groups.values()].map(c=>({...c,environments:1,services:c.sites.length})).sort((a,b)=>a.name.localeCompare(b.name));setCustomers(list);setSelectedCustomer(cur=>list.find(c=>c.id===cur?.id)||list[0]||null);setRegistryMessage(`${list.length} managed customers · ${rows.length} services loaded`)}catch(e){setRegistryMessage(`Registry unavailable: ${e.message}`)}}
  async function refreshMonitoring(){try{const[current,eventData]=await Promise.all([api('/api/monitor/current'),api('/api/monitor/events?limit=200')]);setTargets(current.targets||[]);setEvents(eventData.events||[]);setMonitorUpdated(new Date())}catch(e){setOperation({busy:false,message:`Monitoring refresh failed: ${e.message}`,tone:'error'})}}
  async function refreshServices(){const results=await Promise.allSettled(serviceDefinitions.map(s=>api(`/api/ops/service/status?service=${encodeURIComponent(s.id)}`)));const next={};results.forEach((r,i)=>next[serviceDefinitions[i].id]=r.status==='fulfilled'?(r.value.active||'unknown'):'unavailable');setServiceState(next)}
+ async function refreshNodes(){const ids=['atlas01','atlas02'];const results=await Promise.allSettled(ids.map(id=>api(`/api/infra/${id}/status`)));const next={};results.forEach((r,i)=>{next[ids[i]]=r.status==='fulfilled'?{...r.value,reachable:true}:{hostname:ids[i],reachable:false,error:r.reason?.message||'Unavailable'}});setNodes(next);setNodesUpdated(new Date())}
  async function loadSystemHealth(){await Promise.all([refreshServices(),api('/api/finance/health').then(setFinanceHealth).catch(()=>setFinanceHealth({status:'unavailable'})),api('/api/finance/backup-status').then(setFinanceBackup).catch(()=>setFinanceBackup(null))])}
  async function loadHistory(slug){const data=await withOperation(`Loading ${slug} history`,()=>api(`/api/monitor/history?customer=${encodeURIComponent(slug)}&limit=240`));setHistories(x=>({...x,[slug]:data.history||[]}))}
  async function loadBackups(slug){const d=await withOperation(`Loading ${slug} backups`,()=>api(`/api/ops/customer/backups?customer=${encodeURIComponent(slug)}`));setBackups(x=>({...x,[slug]:d.backups||[]}))}
@@ -61,13 +62,136 @@ export default function App(){
 
  useEffect(()=>{let stop=false;const run=async()=>{if(stop)return;await loadRegistry();if(!stop)await refreshMonitoring()};run();const t=setInterval(run,60000);return()=>{stop=true;clearInterval(t)}},[])
  useEffect(()=>{let stop=false;const run=async()=>{if(stop)return;await refreshServices()};run();const t=setInterval(run,30000);return()=>{stop=true;clearInterval(t)}},[])
+ useEffect(()=>{let stop=false;const run=async()=>{if(stop)return;await refreshNodes()};run();const t=setInterval(run,30000);return()=>{stop=true;clearInterval(t)}},[])
  useEffect(()=>{if(section==='system-health')loadSystemHealth()},[section])
 
  function historySummary(slug){const h=histories[slug]||[];if(!h.length)return{samples:0,availability:'Load history',avg:'—'};const up=h.filter(x=>x.reachable).length,lat=h.map(x=>x.response_ms).filter(Number.isFinite);return{samples:h.length,availability:`${((up/h.length)*100).toFixed(1)}%`,avg:lat.length?`${Math.round(lat.reduce((a,b)=>a+b,0)/lat.length)} ms`:'—'}}
  function LatencyBars({slug}){const h=(histories[slug]||[]).slice(-24);if(!h.length)return <button className="secondary-button" onClick={()=>loadHistory(slug)}>Load history</button>;const max=Math.max(500,...h.map(x=>x.response_ms||0));return <div className="latency-bars">{h.map((x,i)=><span key={`${x.checked_at}-${i}`} className={x.reachable?'':'down'} style={{height:`${Math.max(8,Math.round(((x.response_ms||max)/max)*100))}%`}} title={`${x.response_ms??'—'} ms · ${new Date(x.checked_at).toLocaleTimeString()}`}/>)}</div>}
 
  function renderOverview(){const attention=[...serviceRows.filter(x=>x.state.tone!=='healthy').map(x=>({title:`${x.site.customerName} · ${x.site.name}`,detail:x.state.reason,tone:x.state.tone})),...incidents.active.map(i=>({title:`Incident · ${i.display_name||i.slug}`,detail:i.message,tone:'critical'}))].slice(0,8);return <><section className="stats-grid"><StatCard label="Platform services" value={`${activeServiceCount}/${serviceDefinitions.length}`} detail={allServicesHealthy?'All approved services active':'Review infrastructure status'} accent="LIVE"/><StatCard label="Customer health" value={`${counts.healthy}/${allSites.length}`} detail={`${counts.degraded} degraded · ${counts.critical} critical · ${counts.stale} stale`} accent="WEB"/><StatCard label="Open incidents" value={incidents.active.length} detail={`${incidents.resolved.length} resolved incidents loaded`} accent="ALERT"/><StatCard label="Registry" value={customers.length} detail={registryMessage} accent="REG"/></section><section className="overview-grid"><article className="panel"><SectionTitle eyebrow="System status" title="Operational posture" description="One health vocabulary across the administration platform."/><div className="service-list"><div className="service-line"><span><StatusDot tone={allServicesHealthy?'green':'blue'}/>Platform</span><strong>{allServicesHealthy?'Healthy':'Review'}</strong></div><div className="service-line"><span><StatusDot tone={counts.critical===0?'green':'blue'}/>Customer services</span><strong>{counts.healthy} healthy · {counts.degraded} degraded · {counts.critical} critical</strong></div><div className="service-line"><span><StatusDot tone={incidents.active.length===0?'green':'blue'}/>Incidents</span><strong>{incidents.active.length} open</strong></div><div className="service-line"><span><StatusDot tone="green"/>Monitoring freshness</span><strong>{monitorUpdated?ageLabel(monitorUpdated):'Starting'}</strong></div></div></article><article className="panel"><SectionTitle eyebrow="Attention required" title="What needs action" description="Only items outside the healthy state are shown."/><div className="alert-list">{attention.length?attention.map((a,i)=><div className={`alert-row ${a.tone}`} key={`${a.title}-${i}`}><div><strong>{a.title}</strong><span>{a.detail}</span></div></div>):<div className="empty-state">No operational attention required.</div>}</div></article></section><section className="panel"><SectionTitle eyebrow="Customers" title="Customer pulse" description="Unified control-plane registry; no customer list is hard-coded in the Dashboard."/><div className="customer-pulse">{customers.map(c=>{const rows=c.sites.map(s=>monitoringState(targetBySlug[s.slug]||{}));const healthy=rows.length&&rows.every(x=>x.tone==='healthy');return <button className="pulse-row" key={c.id} onClick={()=>{setSelectedCustomer(c);setSection('customers')}}><CustomerLogo customer={c}/><div><strong>{c.name}</strong><span>{c.sites.length} managed service{c.sites.length===1?'':'s'}</span></div><span className={`customer-status ${healthy?'active':'onboarding'}`}>{healthy?'Healthy':'Review'}</span></button>})}</div></section></>}
- function renderInfrastructure(){return <><SectionTitle eyebrow="Atlaris infrastructure" title="Infrastructure operations" description="Live status for all approved atlas01 services." action={<button className="secondary-button" onClick={refreshServices}>Refresh</button>}/><section className="panel"><div className="ops-service-list">{serviceDefinitions.map(s=><div className="ops-service-row" key={s.id}><div className="ops-service-copy"><div className="ops-service-title"><StatusDot tone={serviceState[s.id]==='active'?'green':'blue'}/><strong>{s.label}</strong></div><span>{s.detail}</span></div><span className={`service-state ${serviceState[s.id]==='active'?'active':''}`}>{serviceState[s.id]||'Checking'}</span><div className="inline-actions"><button className="secondary-button" onClick={()=>loadLogs(s.id)} disabled={operation.busy}>Logs</button>{s.restartable&&<button className="danger-button" onClick={()=>restartService(s.id)} disabled={operation.busy}>Restart</button>}</div></div>)}</div></section><section className="panel"><SectionTitle eyebrow="Journal" title={selectedLogService?`${selectedLogService} logs`:'Service logs'}/><pre className="log-viewer">{serviceLogs||'Select Logs on a service.'}</pre></section></>}
+ function renderInfrastructure(){
+  const formatBytes=value=>value?`${(value/1073741824).toFixed(1)} GB`:'—'
+  const nodeRows=['atlas01','atlas02'].map(
+    id=>nodes[id]||{hostname:id,reachable:false}
+  )
+
+  return <>
+    <SectionTitle
+      eyebrow="Atlaris infrastructure"
+      title="Infrastructure operations"
+      description="Live status for atlas01, atlas02 and all approved platform services."
+      action={
+        <button
+          className="secondary-button"
+          onClick={()=>{refreshNodes();refreshServices()}}
+        >
+          Refresh all
+        </button>
+      }
+    />
+
+    <section className="node-grid">
+      {nodeRows.map(node=>
+        <article className="panel node-card" key={node.hostname}>
+          <div className="node-card-head">
+            <div>
+              <span className="eyebrow">Managed node</span>
+              <h3>{node.hostname}</h3>
+            </div>
+            <span className={`service-state ${node.reachable?'active':''}`}>
+              {node.reachable?'Connected':'Unavailable'}
+            </span>
+          </div>
+
+          <div className="node-metrics">
+            <div>
+              <span>CPU</span>
+              <strong>
+                {node.cpu_percent!=null?`${node.cpu_percent}%`:'—'}
+              </strong>
+            </div>
+            <div>
+              <span>Memory</span>
+              <strong>
+                {node.memory?.percent!=null?`${node.memory.percent}%`:'—'}
+              </strong>
+              <small>{formatBytes(node.memory?.available)} available</small>
+            </div>
+            <div>
+              <span>Disk</span>
+              <strong>
+                {node.disk?.percent!=null?`${node.disk.percent}%`:'—'}
+              </strong>
+              <small>{formatBytes(node.disk?.free)} free</small>
+            </div>
+          </div>
+
+          {node.error&&<p className="node-error">{node.error}</p>}
+        </article>
+      )}
+    </section>
+
+    <p className="infrastructure-freshness">
+      Node telemetry updated {nodesUpdated?ageLabel(nodesUpdated):'when the section loads'}.
+    </p>
+
+    <section className="panel">
+      <SectionTitle
+        eyebrow="atlas01 services"
+        title="Platform services"
+        description="Controlled services hosted on atlas01."
+      />
+      <div className="ops-service-list">
+        {serviceDefinitions.map(s=>
+          <div className="ops-service-row" key={s.id}>
+            <div className="ops-service-copy">
+              <div className="ops-service-title">
+                <StatusDot
+                  tone={serviceState[s.id]==='active'?'green':'blue'}
+                />
+                <strong>{s.label}</strong>
+              </div>
+              <span>{s.detail}</span>
+            </div>
+            <span
+              className={`service-state ${serviceState[s.id]==='active'?'active':''}`}
+            >
+              {serviceState[s.id]||'Checking'}
+            </span>
+            <div className="inline-actions">
+              <button
+                className="secondary-button"
+                onClick={()=>loadLogs(s.id)}
+                disabled={operation.busy}
+              >
+                Logs
+              </button>
+              {s.restartable&&
+                <button
+                  className="danger-button"
+                  onClick={()=>restartService(s.id)}
+                  disabled={operation.busy}
+                >
+                  Restart
+                </button>
+              }
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <section className="panel">
+      <SectionTitle
+        eyebrow="Journal"
+        title={selectedLogService?`${selectedLogService} logs`:'Service logs'}
+      />
+      <pre className="log-viewer">
+        {serviceLogs||'Select Logs on a service.'}
+      </pre>
+    </section>
+  </>
+}
  function renderMonitoring(){return <><SectionTitle eyebrow="Monitoring" title="Operational monitoring" description="Freshness-aware service states and incident lifecycle from one shared policy." action={<button className="primary-button" onClick={refreshMonitoring}>Refresh</button>}/><section className="stats-grid"><StatCard label="Healthy" value={counts.healthy} detail="Fresh and within thresholds" accent="OK"/><StatCard label="Degraded" value={counts.degraded} detail="HTTP 4xx, latency or TLS warning" accent="WARN"/><StatCard label="Critical" value={counts.critical} detail="Unreachable or HTTP 5xx" accent="CRIT"/><StatCard label="Open incidents" value={incidents.active.length} detail={`${incidents.resolved.length} resolved`} accent="INC"/></section><section className="panel"><div className="customer-monitor-table"><div className="customer-monitor-row customer-monitor-head"><span>Customer / service</span><span>Status</span><span>HTTP</span><span>Latency</span><span>TLS</span><span>Last sample</span></div>{serviceRows.map(({site,target,state})=><div className={`customer-monitor-row ${state.tone}`} key={site.slug} title={state.reason}><div><strong>{site.customerName}</strong><small>{site.name} · {site.slug}</small></div><span className={`monitor-badge ${state.tone}`}>{state.label}</span><span>{target?.http_status??'—'}</span><span>{target?.response_ms!=null?`${target.response_ms} ms`:'—'}</span><span>{target?.tls_days_remaining!=null?`${target.tls_days_remaining} days`:'—'}</span><span>{ageLabel(state.checked)}</span></div>)}</div></section><section className="two-column-grid"><article className="panel"><SectionTitle eyebrow="Incident lifecycle" title="Open incidents"/><div className="alert-list">{incidents.active.length?incidents.active.map(i=><div className={`alert-row ${i.severity}`} key={i.id}><div><strong>{i.display_name||i.slug} · {i.service_name||'Main'}</strong><span>{i.message}</span></div><div><b>{i.event_count} event{i.event_count===1?'':'s'}</b><time>{i.started_at?new Date(i.started_at).toLocaleString():'—'}</time></div></div>):<div className="empty-state">No open incidents.</div>}</div></article><article className="panel"><SectionTitle eyebrow="Recovered" title="Recent resolved incidents"/><div className="alert-list">{incidents.resolved.slice(0,12).map(i=><div className="alert-row" key={i.id}><div><strong>{i.display_name||i.slug}</strong><span>Resolved · duration {durationLabel(i.duration_ms)}</span></div></div>)}</div></article></section></>}
  function renderCustomers(){if(!selectedCustomer)return <section className="panel"><div className="empty-state">{registryMessage}</div></section>;return <><SectionTitle eyebrow="Customer operations" title="Customer administration" description="Registry-driven customer directory and recovery controls." action={<button className="secondary-button" onClick={loadRegistry}>Refresh registry</button>}/><section className="customer-layout"><article className="panel customer-directory"><div className="directory-header"><span>Customer directory</span><strong>{customers.length}</strong></div><div className="directory-list">{customers.map(c=><button className={`directory-item ${selectedCustomer.id===c.id?'selected':''}`} key={c.id} onClick={()=>setSelectedCustomer(c)}><CustomerLogo customer={c}/><div><strong>{c.name}</strong><span>{c.services} service{c.services===1?'':'s'}</span></div><StatusDot tone={c.sites.some(s=>monitoringState(targetBySlug[s.slug]||{}).tone==='healthy')?'green':'blue'}/></button>)}</div></article><article className="panel customer-detail"><div className="customer-detail-head"><div className="customer-identity"><CustomerLogo customer={selectedCustomer} large/><div><span className="eyebrow">Unified registry</span><h3>{selectedCustomer.name}</h3><p>{selectedCustomer.description}</p></div></div><span className="customer-status active">{selectedCustomer.status}</span></div><div className="customer-metrics"><div><strong>{selectedCustomer.environments}</strong><span>Environment</span></div><div><strong>{selectedCustomer.services}</strong><span>Services</span></div><div><strong>{selectedCustomer.sites.filter(s=>monitoringState(targetBySlug[s.slug]||{}).tone==='healthy').length}/{selectedCustomer.sites.length}</strong><span>Healthy</span></div><div><strong>{selectedCustomer.tier}</strong><span>Management</span></div></div><div className="customer-detail-grid wide">{selectedCustomer.sites.map(site=>{const target=targetBySlug[site.slug],state=monitoringState(target||{}),summary=historySummary(site.slug);return <div className="subpanel site-ops-card" key={site.slug}><div className="site-ops-head"><div><span className="eyebrow">{site.name}</span><h4>{site.slug}</h4></div>{site.url&&<a href={site.url} target="_blank" rel="noreferrer">Open ↗</a>}</div><div className={`site-monitor-strip ${state.tone}`}><div><span>Status</span><strong>{state.label}</strong></div><div><span>HTTP</span><strong>{target?.http_status??'—'}</strong></div><div><span>Latency</span><strong>{target?.response_ms!=null?`${target.response_ms} ms`:'—'}</strong></div><div><span>TLS</span><strong>{target?.tls_days_remaining!=null?`${target.tls_days_remaining} days`:'—'}</strong></div></div><div className="history-summary"><span>History: {summary.samples||'on demand'}</span><span>Availability: {summary.availability}</span><span>Avg latency: {summary.avg}</span></div><LatencyBars slug={site.slug}/><div className="path-block"><span>Mirror</span><code>{site.localPath}</code></div><div className="path-block"><span>Backups</span><code>{site.backupPath}</code></div><div className="inline-actions site-actions"><button className="primary-button" onClick={()=>createBackup(site.slug)} disabled={operation.busy}>Create backup</button><button className="secondary-button" onClick={()=>loadBackups(site.slug)} disabled={operation.busy}>View backups</button></div>{backups[site.slug]&&<div className="backup-list">{backups[site.slug].slice(0,8).map(b=><div className="backup-row" key={b.name}><div><strong>{b.name}</strong><span>{new Date(b.modified).toLocaleString()}</span></div><button className="secondary-button" onClick={()=>restoreBackup(site.slug,b.name)}>Restore</button></div>)}</div>}</div>})}</div><div className={`operation-banner ${operation.tone}`}>{operation.message}</div></article></section></>}
  function renderCustomerServices(){return <><SectionTitle eyebrow="Customer monitoring" title="Customer service health" description="Current state is loaded in one request; detailed history loads only when requested."/><section className="stats-grid"><StatCard label="Services" value={allSites.length} detail="Unified registry" accent="WEB"/><StatCard label="Healthy" value={counts.healthy} detail={`${counts.degraded} degraded · ${counts.critical} critical`} accent="UP"/><StatCard label="Open incidents" value={incidents.active.length} detail="Incident-based lifecycle" accent="ALERT"/><StatCard label="History strategy" value="On demand" detail="Avoids N+1 polling as customer count grows" accent="FAST"/></section><section className="panel"><div className="customer-monitor-table"><div className="customer-monitor-row customer-monitor-head"><span>Customer / service</span><span>Status</span><span>HTTP</span><span>Latency</span><span>TLS</span><span>Availability</span></div>{serviceRows.map(({site,target,state})=>{const summary=historySummary(site.slug);return <div className={`customer-monitor-row ${state.tone}`} key={site.slug}><div><strong>{site.customerName}</strong><small>{site.name} · {site.slug}</small></div><span className={`monitor-badge ${state.tone}`}>{state.label}</span><span>{target?.http_status??'—'}</span><span>{target?.response_ms!=null?`${target.response_ms} ms`:'—'}</span><span>{target?.tls_days_remaining!=null?`${target.tls_days_remaining} days`:'—'}</span><span><button className="secondary-button" onClick={()=>loadHistory(site.slug)}>{summary.samples?summary.availability:'Load'}</button></span></div>})}</div></section><section className="two-column-grid"><article className="panel"><SectionTitle eyebrow="Alert center" title="Open incidents"/><div className="alert-list">{incidents.active.length?incidents.active.map(i=><div className={`alert-row ${i.severity}`} key={i.id}><div><strong>{i.display_name||i.slug}</strong><span>{i.message}</span></div></div>):<div className="empty-state">No open incidents.</div>}</div></article><article className="panel"><SectionTitle eyebrow="History" title="Recent latency" description="History is fetched only for services you inspect."/><div className="history-site-list">{allSites.map(site=><div className="history-site" key={site.slug}><div><strong>{site.customerName}</strong><span>{site.name} · {historySummary(site.slug).avg}</span></div><LatencyBars slug={site.slug}/></div>)}</div></article></section></>}
